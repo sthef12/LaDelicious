@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LaDelicious Cardápio</title>
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="wrap">
+        <div class="logo">
+            <img class="img_logo" src="img/logo.webp" alt="">
+        </div>
+    <header class="topbar">
+      <h1>🍽️ Cardápio</h1>
+      <input id="busca" placeholder="Buscar item..." />
+    </header>
+
+    <main id="root" class="container"></main>
+
+    <footer class="footer">
+      <small>Desenvolvido por <a href="#">SthefanyCamilo</a> e <a href="#">LarissaGiovanna</a></small>
+    </footer>
+
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+
+    <script type="text/babel">
+        const MENU = [
+          { id: 1, nome: "Bolo de Morango", descricao: "Fatia com morangos frescos", preco: 12.5, destaque: "Mais pedido", imagem: "img/bolo de morango.jpg" },
+          { id: 2, nome: "Café Expresso", descricao: "Café forte e encorpado", preco: 6.0, destaque: "Clássico", imagem: "img/cafe.jpg" },
+          { id: 3, nome: "Suco de Laranja", descricao: "Feito na hora", preco: 8.0, destaque: "Natural", imagem: "img/suco de laranja.jpg" },
+          { id: 4, nome: "Torta de Frango", descricao: "Massa leve, recheio cremoso", preco: 14.0, destaque: "Salgado", imagem: "img/torta de frango.jpg" },
+          { id: 5, nome: "Capuccino", descricao: "Creme de leite e canela", preco: 9.5, destaque: "Especial", imagem: "img/Capuccino.jpg" }
+        ];
+
+      const formatBRL = (v) => v.toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+
+        function Item({ item }) {
+          return (
+            <div className="card">
+              <img src={item.imagem} alt={item.nome} className="card-img" />
+              <div className="card-main">
+                <div className="card-title-row">
+                  <h2 className="card-title">{item.nome}</h2>
+                  <span className="price">{formatBRL(item.preco)}</span>
+                </div>
+                <p className="desc">{item.descricao}</p>
+                <span className="badge">{item.destaque}</span>
+              </div>
+            </div>
+          );
+        }
+
+      function Lista({ itens }) {
+        if (!itens.length) {
+          return <p className="empty">Nenhum item encontrado.</p>;
+        }
+        return (
+          <div className="grid">
+            {itens.map((i) => <Item key={i.id} item={i} />)}
+          </div>
+        );
+      }
+
+        function App() {
+            const [pagina, setPagina] = React.useState("home"); // "home" ou "destaque"
+            const [destaqueSelecionado, setDestaqueSelecionado] = React.useState(null);
+            const [busca, setBusca] = React.useState("");
+
+            React.useEffect(() => {
+              const input = document.getElementById("busca");
+              const handler = (e) => setBusca(e.target.value);
+              input.addEventListener("input", handler);
+              return () => input.removeEventListener("input", handler);
+            }, []);
+        
+            // Filtro geral para página inicial
+            const filtrados = React.useMemo(() => {
+              const q = busca.trim().toLowerCase();
+              if (!q) return MENU;
+              return MENU.filter((i) =>
+                [i.nome, i.descricao, i.destaque].some((f) => f.toLowerCase().includes(q))
+              );
+            }, [busca]);
+        
+            // Filtra por destaque quando for página de destaque
+            const filtradosPorDestaque = React.useMemo(() => {
+              return MENU.filter((i) => i.destaque === destaqueSelecionado);
+            }, [destaqueSelecionado]);
+        
+            // Conteúdo das páginas
+            if (pagina === "destaque" && destaqueSelecionado) {
+              return (
+                <div>
+                  <button id="bntVoltar" onClick={() => setPagina("home")}>Voltar</button>
+                  <h2>Itens - {destaqueSelecionado}</h2>
+                  <Lista itens={filtradosPorDestaque} />
+                </div>
+              );
+            }
+        
+            return (
+              <div class="lista_filtro">
+                <Lista itens={filtrados} />
+                <h3>Ver por Destaque:</h3>
+                <div class="lista_filtrados" style={{display:"flex", gap:"8px"}}>
+                  {Array.from(new Set(MENU.map(m => m.destaque))).map(d => (
+                    <button
+                      key={d}
+                      onClick={() => {setDestaqueSelecionado(d); setPagina("destaque");}}
+                    >
+                      {d}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            );
+        }
+
+
+      const root = ReactDOM.createRoot(document.getElementById("root"));
+      root.render(<App />);
+    </script>
+</body>
+</html>
